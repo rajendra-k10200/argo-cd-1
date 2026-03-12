@@ -84,7 +84,7 @@ type ArgoCDWebhookHandler struct {
 	settings                      *settings.ArgoCDSettings
 	settingsSrc                   settingsSource
 	queue                         chan any
-	refreshQueue                  workqueue.TypedDelayingInterface[any]
+	refreshQueue                  workqueue.TypedDelayingInterface[*appRefreshRequest]
 	maxWebhookPayloadSizeB        int64
 	webhookRefreshJitter          time.Duration
 	webhookRefreshJitterThreshold int
@@ -135,7 +135,7 @@ func NewHandler(namespace string, applicationNamespaces []string, webhookParalle
 		settings:                      set,
 		db:                            argoDB,
 		queue:                         make(chan any, payloadQueueSize),
-		refreshQueue:                  workqueue.NewTypedDelayingQueue[any](),
+		refreshQueue:                  workqueue.NewTypedDelayingQueue[*appRefreshRequest](),
 		maxWebhookPayloadSizeB:        maxWebhookPayloadSizeB,
 		appsLister:                    appsLister,
 		webhookRefreshJitter:          webhookRefreshJitter,
@@ -170,33 +170,23 @@ func (a *ArgoCDWebhookHandler) startRefreshWorkers(count int) {
 	for range count {
 		a.Go(func() {
 			for {
-				item, shutdown := a.refreshQueue.Get()
+				req, shutdown := a.refreshQueue.Get()
 				if shutdown {
 					return
 				}
-				guard.RecoverAndLog(func() { a.processAppRefresh(item) }, log.WithField("component", "api-server-webhook-refresh"), panicMsgServer)
-				a.refreshQueue.Done(item)
+				guard.RecoverAndLog(func() { a.processAppRefresh(req) }, log.WithField("component", "api-server-webhook-refresh"), panicMsgServer)
+				a.refreshQueue.Done(req)
 			}
 		})
 	}
 }
 
 // processAppRefresh processes a single app refresh request
-func (a *ArgoCDWebhookHandler) processAppRefresh(item any) {
-	req, ok := item.(*appRefreshRequest)
-	if !ok {
-		log.Warnf("Invalid refresh request type: %T", item)
-		return
-	}
-
+func (a *ArgoCDWebhookHandler) processAppRefresh(req *appRefreshRequest) {
 	namespacedAppInterface := a.appClientset.ArgoprojV1alpha1().Applications(req.appNamespace)
 	_, err := argo.RefreshApp(namespacedAppInterface, req.appName, v1alpha1.RefreshTypeNormal, req.hydrate)
 	if err != nil {
-		if req.hydrate {
-			log.Warnf("Failed to hydrate app '%s' for controller reprocessing: %v", req.appName, err)
-		} else {
-			log.Warnf("Failed to refresh app '%s' for controller reprocessing: %v", req.appName, err)
-		}
+		log.Warnf("Failed to refresh app '%s' for controller reprocessing: %v", req.appName, err)
 		return
 	}
 
