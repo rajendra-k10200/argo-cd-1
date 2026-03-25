@@ -12,7 +12,6 @@ import (
 type Context struct {
 	*fixture.TestState
 
-	project    string
 	configPath string
 }
 
@@ -27,11 +26,6 @@ func Given(t *testing.T) *Context {
 func GivenWithSameState(ctx fixture.TestContext) *Context {
 	ctx.T().Helper()
 	return &Context{TestState: fixture.NewTestStateFromContext(ctx)}
-}
-
-func (c *Context) Project(project string) *Context {
-	c.project = project
-	return c
 }
 
 func (c *Context) ConfigPath(configPath string) *Context {
