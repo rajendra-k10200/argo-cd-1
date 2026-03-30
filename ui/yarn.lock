@@ -3678,10 +3678,10 @@ domhandler@^4.0.0, domhandler@^4.2.0:
   dependencies:
     domelementtype "^2.2.0"
 
-dompurify@^3.0.6:
-  version "3.2.4"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.2.4.tgz#af5a5a11407524431456cf18836c55d13441cd8e"
-  integrity sha512-ysFSFEDVduQpyhzAob/kkuJjf5zWkZD8/A9ywSp1byueyuCfHamrCBa14/Oc2iiB0e51B+NpxSl5gmzn+Ms/mg==
+dompurify@^3.2.4:
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.3.3.tgz#680cae8af3e61320ddf3666a3bc843f7b291b2b6"
+  integrity sha512-Oj6pzI2+RqBfFG+qOaOLbFXLQ90ARpcGG6UePL82bJLtdsa6CYJD7nmiU8MW9nQNOtCHV3lZ/Bzq1X0QYbBZCA==
   optionalDependencies:
     "@types/trusted-types" "^2.0.7"
 
@@ -4533,12 +4533,21 @@ fast-url-parser@^1.1.3:
   dependencies:
     punycode "^1.3.2"
 
-fast-xml-parser@^4.5.0:
-  version "4.5.3"
-  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-4.5.3.tgz#c54d6b35aa0f23dc1ea60b6c884340c006dc6efb"
-  integrity sha512-RKihhV+SHsIUGXObeVy9AXiBbFwkVk7Syp8XgwN5U3JV416+Gwp/GO9i0JYKmikykgz/UHRrrV4ROuZEo/T0ig==
+fast-xml-builder@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/fast-xml-builder/-/fast-xml-builder-1.1.4.tgz#0c407a1d9d5996336c0cd76f7ff785cac6413017"
+  integrity sha512-f2jhpN4Eccy0/Uz9csxh3Nu6q4ErKxf0XIsasomfOihuSUa3/xw6w8dnOtCDgEItQFJG8KyXPzQXzcODDrrbOg==
   dependencies:
-    strnum "^1.1.1"
+    path-expression-matcher "^1.1.3"
+
+fast-xml-parser@^5.5.1:
+  version "5.5.6"
+  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-5.5.6.tgz#6fc61f5ae06a55a1f058abd6a4f4b5d3e9972cd0"
+  integrity sha512-3+fdZyBRVg29n4rXP0joHthhcHdPUHaIC16cuyyd1iLsuaO6Vea36MPrxgAzbZna8lhvZeRL8Bc9GP56/J9xEw==
+  dependencies:
+    fast-xml-builder "^1.1.4"
+    path-expression-matcher "^1.1.3"
+    strnum "^2.1.2"
 
 fastest-levenshtein@^1.0.12:
   version "1.0.12"
@@ -6723,7 +6732,7 @@ mobx-react-lite@^4.1.0:
   dependencies:
     use-sync-external-store "^1.4.0"
 
-mobx-react@^9.1.1:
+mobx-react@9.2.0:
   version "9.2.0"
   resolved "https://registry.yarnpkg.com/mobx-react/-/mobx-react-9.2.0.tgz#c1e4d1ed406f6664d9de0787c948bac3a7ed5893"
   integrity sha512-dkGWCx+S0/1mfiuFfHRH8D9cplmwhxOV5CkXMp38u6rQGG2Pv3FWYztS0M7ncR6TyPRQKaTG/pnitInoYE9Vrw==
@@ -7050,13 +7059,13 @@ open@^8.0.9:
     is-docker "^2.1.1"
     is-wsl "^2.2.0"
 
-openapi-sampler@^1.5.0:
-  version "1.6.1"
-  resolved "https://registry.yarnpkg.com/openapi-sampler/-/openapi-sampler-1.6.1.tgz#fa1839cd372d1789e12cd3cce46b0511d3f5c79e"
-  integrity sha512-s1cIatOqrrhSj2tmJ4abFYZQK6l5v+V4toO5q1Pa0DyN8mtyqy2I+Qrj5W9vOELEtybIMQs/TBZGVO/DtTFK8w==
+openapi-sampler@^1.6.2:
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/openapi-sampler/-/openapi-sampler-1.7.2.tgz#2bb1087af0b77007829d788536fa2218171d0aad"
+  integrity sha512-OKytvqB5XIaTgA9xtw8W8UTar+uymW2xPVpFN0NihMtuHPdPTGxBEhGnfFnJW5g/gOSIvkP+H0Xh3XhVI9/n7g==
   dependencies:
     "@types/json-schema" "^7.0.7"
-    fast-xml-parser "^4.5.0"
+    fast-xml-parser "^5.5.1"
     json-pointer "0.6.2"
 
 optionator@^0.9.3:
@@ -7199,6 +7208,11 @@ path-exists@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/path-exists/-/path-exists-4.0.0.tgz#513bdbe2d3b95d7762e8c1137efa195c6c61b5b3"
   integrity sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w==
+
+path-expression-matcher@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/path-expression-matcher/-/path-expression-matcher-1.1.3.tgz#8bf7c629dc1b114e42b633c071f06d14625b4e0d"
+  integrity sha512-qdVgY8KXmVdJZRSS1JdEPOKPdTiEK/pi0RkcT2sw1RhXxohdujUlJFPuS1TSkevZ9vzd3ZlL7ULl1MHGTApKzQ==
 
 path-is-absolute@^1.0.0:
   version "1.0.1"
@@ -7764,22 +7778,22 @@ redbox-react@^1.3.6:
     prop-types "^15.5.4"
     sourcemapped-stacktrace "^1.1.6"
 
-redoc@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/redoc/-/redoc-2.4.0.tgz#4a978c91bfec426038001b8b6c26d1ebb7c60bb4"
-  integrity sha512-rFlfzFVWS9XJ6aYAs/bHnLhHP5FQEhwAHDBVgwb9L2FqDQ8Hu8rQ1G84iwaWXxZfPP9UWn7JdWkxI6MXr2ZDjw==
+redoc@^2.5.2:
+  version "2.5.2"
+  resolved "https://registry.yarnpkg.com/redoc/-/redoc-2.5.2.tgz#00235b2d1bfcf32fe35acf1eedc44cf058a57731"
+  integrity sha512-sTJfItvRkcDTojB6wdLN4M+Ua6mlZwElV21Tf8Mn7IbQF/1Os6GvgQpZyLWPGZZHbhy7GC1Or1hTMHfz1vKh5A==
   dependencies:
     "@redocly/openapi-core" "^1.4.0"
     classnames "^2.3.2"
     decko "^1.2.0"
-    dompurify "^3.0.6"
+    dompurify "^3.2.4"
     eventemitter3 "^5.0.1"
     json-pointer "^0.6.2"
     lunr "^2.3.9"
     mark.js "^8.11.1"
     marked "^4.3.0"
-    mobx-react "^9.1.1"
-    openapi-sampler "^1.5.0"
+    mobx-react "9.2.0"
+    openapi-sampler "^1.6.2"
     path-browserify "^1.0.1"
     perfect-scrollbar "^1.5.5"
     polished "^4.2.2"
@@ -8726,10 +8740,10 @@ strip-json-comments@^3.1.1:
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-3.1.1.tgz#31f1281b3832630434831c310c01cccda8cbe006"
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
 
-strnum@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/strnum/-/strnum-1.1.1.tgz#6b312934054594dd611bd18d9bcce5053a7caaee"
-  integrity sha512-O7aCHfYCamLCctjAiaucmE+fHf2DYHkus2OKCn4Wv03sykfFtgeECn505X6K4mPl8CRNd/qurC9guq+ynoN4pw==
+strnum@^2.1.2:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/strnum/-/strnum-2.2.1.tgz#d28f896b4ef9985212494ce8bcf7ca304fad8368"
+  integrity sha512-BwRvNd5/QoAtyW1na1y1LsJGQNvRlkde6Q/ipqqEaivoMdV+B1OMOTVdwR+N/cwVUcIt9PYyHmV8HyexCZSupg==
 
 stubs@^3.0.0:
   version "3.0.0"
