@@ -75,7 +75,22 @@ func (h *helm) Template(templateOpts *TemplateOpts) (string, string, error) {
 	return out, command, nil
 }
 
+func allReposInsecure(repos []HelmRepository) bool {
+	if len(repos) == 0 {
+		return false
+	}
+	for _, repo := range repos {
+		if !repo.GetInsecureSkipVerify() {
+			return false
+		}
+	}
+	return true
+}
+
 func (h *helm) DependencyBuild() error {
+	// Check whether all repositories are marked as insecure
+	insecureSkipTLSVerify := allReposInsecure(h.repos)
+
 	isHelmOci := h.cmd.IsHelmOci
 	defer func() {
 		h.cmd.IsHelmOci = isHelmOci
@@ -108,7 +123,7 @@ func (h *helm) DependencyBuild() error {
 		}
 	}
 	h.repos = nil
-	_, err := h.cmd.dependencyBuild()
+	_, err := h.cmd.dependencyBuild(insecureSkipTLSVerify)
 	if err != nil {
 		return fmt.Errorf("failed to build helm dependencies: %w", err)
 	}
