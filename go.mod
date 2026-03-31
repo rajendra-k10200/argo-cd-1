@@ -16,7 +16,7 @@ require (
 	github.com/argoproj/notifications-engine v0.4.1-0.20250309174002-87bf0576a872
 	github.com/argoproj/pkg v0.13.7-0.20250305113207-cbc37dc61de5
 	github.com/aws/aws-sdk-go v1.55.6
-	github.com/bmatcuk/doublestar/v4 v4.8.1
+	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/bombsimon/logrusr/v4 v4.1.0
 	github.com/bradleyfalzon/ghinstallation/v2 v2.14.0
 	github.com/casbin/casbin/v2 v2.103.0
