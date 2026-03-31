@@ -352,6 +352,59 @@ func TestCompareAppStateExtra(t *testing.T) {
 	assert.Empty(t, app.Status.Conditions)
 }
 
+// TestCompareAppStatePruneRequested tests that PruneRequested is set when a live-only resource
+// has the Prune=true annotation, and is not set when the resource also exists in the target state.
+func TestCompareAppStatePruneRequested(t *testing.T) {
+	t.Parallel()
+
+	// liveOnlyPod: exists in live but not in target, has Prune=true annotation — PruneRequested should be true
+	liveOnlyPod := NewPod()
+	liveOnlyPod.SetName("live-only-pod")
+	liveOnlyPod.SetNamespace(test.FakeDestNamespace)
+	liveOnlyPod.SetAnnotations(map[string]string{"argocd.argoproj.io/sync-options": "Prune=true"})
+
+	// managedPod: exists in both target and live, has Prune=true annotation — PruneRequested should be false
+	managedPod := NewPod()
+	managedPod.SetName("managed-pod")
+	managedPod.SetAnnotations(map[string]string{"argocd.argoproj.io/sync-options": "Prune=true"})
+
+	// noPrunePod: exists in live but not target, no Prune=true annotation — PruneRequested should be false
+	noPrunePod := NewPod()
+	noPrunePod.SetName("no-prune-pod")
+	noPrunePod.SetNamespace(test.FakeDestNamespace)
+
+	app := newFakeApp()
+	data := fakeData{
+		apps: []runtime.Object{app},
+		manifestResponse: &apiclient.ManifestResponse{
+			Manifests: []string{toJSON(t, managedPod)},
+			Namespace: test.FakeDestNamespace,
+			Server:    test.FakeClusterURL,
+			Revision:  "abc123",
+		},
+		managedLiveObjs: map[kube.ResourceKey]*unstructured.Unstructured{
+			kube.GetResourceKey(liveOnlyPod): liveOnlyPod,
+			kube.GetResourceKey(managedPod):  managedPod,
+			kube.GetResourceKey(noPrunePod):  noPrunePod,
+		},
+	}
+	ctrl := newFakeController(t.Context(), &data, nil)
+	sources := []v1alpha1.ApplicationSource{app.Spec.GetSource()}
+	revisions := []string{""}
+	compRes, err := ctrl.appStateManager.CompareAppState(app, &defaultProj, revisions, sources, false, false, nil, false)
+	require.NoError(t, err)
+	require.NotNil(t, compRes)
+
+	pruneRequestedByName := map[string]bool{}
+	for _, res := range compRes.resources {
+		pruneRequestedByName[res.Name] = res.PruneRequested
+	}
+
+	assert.True(t, pruneRequestedByName["live-only-pod"], "live-only resource with Prune=true should have PruneRequested=true")
+	assert.False(t, pruneRequestedByName["managed-pod"], "resource present in both target and live should have PruneRequested=false")
+	assert.False(t, pruneRequestedByName["no-prune-pod"], "live-only resource without Prune=true should have PruneRequested=false")
+}
+
 // TestCompareAppStateHook checks that hooks are detected during manifest generation, and not
 // considered as part of resources when assessing Synced status
 func TestCompareAppStateHook(t *testing.T) {

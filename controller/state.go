@@ -896,6 +896,7 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *v1
 			Group:                        gvk.Group,
 			Hook:                         isHook(obj),
 			RequiresPruning:              targetObj == nil && liveObj != nil && isSelfReferencedObj,
+			PruneRequested:               targetObj == nil && liveObj != nil && isSelfReferencedObj && resourceutil.HasAnnotationOption(liveObj, synccommon.AnnotationSyncOptions, synccommon.SyncOptionEnablePrune),
 			RequiresDeletionConfirmation: isObjRequiresDeletionConfirmation(targetObj, app) || isObjRequiresDeletionConfirmation(liveObj, app),
 		}
 		if targetObj != nil {
