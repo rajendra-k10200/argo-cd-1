@@ -1866,6 +1866,125 @@ func TestGetRevisionMetadata(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, res.SignatureInfo)
+
+	// Test resolving a ref sha and get metadata
+	gitClient.EXPECT().LsRemote("main").Return("test-sha", nil)
+	res, err = service.GetRevisionMetadata(t.Context(), &apiclient.RepoServerRevisionMetadataRequest{
+		Repo:           &v1alpha1.Repository{},
+		Revision:       "main",
+		CheckSignature: true,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "test", res.Message)
+	assert.Equal(t, now, res.Date.Time)
+	assert.Equal(t, "author", res.Author)
+	assert.Equal(t, []string{"tag1", "tag2"}, res.Tags)
+	assert.NotEmpty(t, res.SignatureInfo)
+	require.Len(t, res.References, 1)
+	require.NotNil(t, res.References[0].Commit)
+	assert.Equal(t, "test-sha", res.References[0].Commit.SHA)
+}
+
+func TestGetRevisionMetadata_CachesNonSHARevision(t *testing.T) {
+	service, gitMocks, mockCache := newServiceWithMocks(t, "../..", false)
+	now := time.Now()
+
+	gitMocks.EXPECT().RevisionMetadata(mock.Anything).Return(&git.RevisionMetadata{
+		Message: "test",
+		Author:  "author",
+		Date:    now,
+		Tags:    []string{},
+	}, nil).Once()
+
+	res, err := service.GetRevisionMetadata(t.Context(), &apiclient.RepoServerRevisionMetadataRequest{
+		Repo:           &v1alpha1.Repository{},
+		Revision:       "main",
+		CheckSignature: false,
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "author", res.Author)
+	assert.Equal(t, "test", res.Message)
+	mockCache.mockCache.AssertCacheCalledTimes(t, &repositorymocks.CacheCallCounts{
+		ExternalSets: 1,
+		ExternalGets: 1,
+	})
+	gitMocks.AssertCalled(t, "LsRemote", "main")
+	gitMocks.AssertCalled(t, "Fetch", mock.Anything, mock.Anything)
+
+	// Second call with the same revision should be a cache hit: no additional Fetch or RevisionMetadata calls.
+	res, err = service.GetRevisionMetadata(t.Context(), &apiclient.RepoServerRevisionMetadataRequest{
+		Repo:           &v1alpha1.Repository{},
+		Revision:       "main",
+		CheckSignature: false,
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "author", res.Author)
+	assert.Equal(t, "test", res.Message)
+	mockCache.mockCache.AssertCacheCalledTimes(t, &repositorymocks.CacheCallCounts{
+		ExternalSets: 1,
+		ExternalGets: 2,
+	})
+	gitMocks.AssertNumberOfCalls(t, "Fetch", 1)
+	gitMocks.AssertNumberOfCalls(t, "RevisionMetadata", 1)
+}
+
+func TestGetRevisionMetadata_NewClientError(t *testing.T) {
+	service, _, _ := newServiceWithMocks(t, "../..", false)
+
+	service.newGitClient = func(_ string, _ string, _ git.Creds, _ bool, _ bool, _ string, _ string, _ ...git.ClientOpts) (git.Client, error) {
+		return nil, errors.New("failed to create git client")
+	}
+
+	res, err := service.GetRevisionMetadata(t.Context(), &apiclient.RepoServerRevisionMetadataRequest{
+		Repo:     &v1alpha1.Repository{},
+		Revision: "c0b400fc458875d925171398f9ba9eabd5529923",
+	})
+
+	require.ErrorContains(t, err, "error initializing git client")
+	assert.Nil(t, res)
+}
+
+func TestGetRevisionMetadata_LsRemoteError(t *testing.T) {
+	service, gitClient, _ := newServiceWithOpt(t, func(gitClient *gitmocks.Client, _ *helmmocks.Client, _ *ocimocks.Client, paths *iomocks.TempPaths) {
+		paths.EXPECT().GetPath(mock.Anything).Return("../..", nil)
+		gitClient.EXPECT().LsRemote("main").Return("", errors.New("ls-remote failed"))
+	}, "../..")
+
+	res, err := service.GetRevisionMetadata(t.Context(), &apiclient.RepoServerRevisionMetadataRequest{
+		Repo:     &v1alpha1.Repository{},
+		Revision: "main",
+	})
+
+	require.ErrorContains(t, err, "error resolving revision to commit SHA")
+	assert.Nil(t, res)
+	gitClient.AssertCalled(t, "LsRemote", "main")
+}
+
+func TestGetRevisionMetadata_CacheError(t *testing.T) {
+	service, gitClient, cacheMocks := newServiceWithMocks(t, "../..", false)
+	now := time.Now()
+
+	gitClient.EXPECT().RevisionMetadata(mock.Anything).Return(&git.RevisionMetadata{
+		Message: "test",
+		Author:  "author",
+		Date:    now,
+		Tags:    []string{},
+	}, nil)
+
+	// Simulate a non-cache-miss error so the warning branch (cache.ErrCacheMiss) is exercised
+	cacheMocks.mockCache.RedisClient.On("Get", mock.Anything, mock.Anything).Unset()
+	cacheMocks.mockCache.RedisClient.On("Get", mock.Anything, mock.Anything).Return(errors.New("internal cache error"))
+
+	res, err := service.GetRevisionMetadata(t.Context(), &apiclient.RepoServerRevisionMetadataRequest{
+		Repo:     &v1alpha1.Repository{},
+		Revision: "c0b400fc458875d925171398f9ba9eabd5529923",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "test", res.Message)
+	assert.Equal(t, "author", res.Author)
 }
 
 func TestGetSignatureVerificationResult(t *testing.T) {
